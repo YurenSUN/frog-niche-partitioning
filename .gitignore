@@ -1,0 +1,10 @@
+# Large files
+data/*
+*.hdf5
+*.wav
+*.zip
+*.pkl
+
+# System files
+*__pycache__*
+*.DS_Store
