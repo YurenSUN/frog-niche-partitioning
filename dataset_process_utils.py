@@ -5,8 +5,10 @@ import soundfile as sf
 import h5py
 import cv2
 
-# Split label into smaller chunks to fit into the used time range of sample boxes
 def split_time_interval(start_time, end_time, delta_time, sec_used):
+    """
+    Split label into smaller chunks to fit into the used time range of sample boxes
+    """
     time_intervals = []
     if delta_time <= sec_used:
         time_intervals.append([start_time, end_time])
@@ -23,6 +25,9 @@ def split_time_interval(start_time, end_time, delta_time, sec_used):
 
 
 def retrieve_spectrogram(audio_path, max_freq=-1, one_sided=False):
+    """
+    Retrieve spectrogram from the audio path and crop at max frequency.
+    """
     try:
         audio, rate = sf.read(audio_path)
         if one_sided:
@@ -49,6 +54,9 @@ def retrieve_spectrogram(audio_path, max_freq=-1, one_sided=False):
 
 
 def find_time_index(start, end, t):
+    """
+    Find the index of start of end time in the list of times
+    """
     start_ind = np.argmin(np.abs(t - start))
     end_ind = np.argmin(np.abs(t - end))
     # adjust the params to cover the whole box and be aware of index out of bound
@@ -60,6 +68,9 @@ def find_time_index(start, end, t):
 
 
 def resize_spec(spec, x=224, y=224, x_ratio=1, y_ratio=1, log_scale = False):
+    """
+    Resize the spectrogram to the expected ratio.
+    """
     if log_scale:
         spec  = np.where(spec > 1.0e-10, spec, 1.0e-10)
         spec = 10*np.log10(spec)
@@ -88,6 +99,9 @@ def resize_spec(spec, x=224, y=224, x_ratio=1, y_ratio=1, log_scale = False):
 
 
 def add_to_hdf5(hdf5_file, spec_resized, frog_audio_folder, sample_source_to_add):
+    """
+    Append the spectrogram to the hdf5 file.
+    """
     # add to hdf5
     f = h5py.File(hdf5_file, "a")
     f["specs"].resize((f["specs"].shape[0] + 1), axis=0)

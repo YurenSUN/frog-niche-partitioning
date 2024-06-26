@@ -9,44 +9,72 @@ from pydub import AudioSegment  # mp3
 
 from dataset_process_utils import *
 
-# normalization.
 def normalize(specs):
+    """
+    Normalize the array of spectrograms to be in the range 0 and 1.
+    
+    Inputs:
+    - specs: the array of spectrograms
+    Returns:
+    - the normalized spectrograms
+    """
     return_specs = []
     for i in range(len(specs)):
         cur_spec = np.copy(specs[i])
         s_min = np.amin(cur_spec)
         s_max = np.amax(cur_spec)
-        # specs[i] = (cur_spec - s_min)/(s_max - s_min) * 255
         return_specs.append((cur_spec - s_min) / (s_max - s_min))
+        # To use the log values, uncomment the following line, not used in final paper.
         # return_specs.append( np.log( (cur_spec - s_min)/(s_max - s_min) ) )
 
     return return_specs
 
 
 # Augmentations - Not used in final paper.
-# choppint methods, each return a spec
-# time chop
+# chopping methods, each return a spectrogram
 def time_chop(spec, rand_start, input_w=224, input_h=224):
+    """
+    Chop spectrogram based on time (x axis) at the right.
+    
+    Inputs:
+    - spec: the spectrogram to chop
+    - rand_start: the index to start chopping
+    - input_w: the width of the spectrogram
+    - input_h: the height of the spectrogram
+    Returns:
+    - the chopped spectrogram.
+    """
+    # If not use the input rand_start but define a random start in function,
+    # uncomment the following lines.
     # chop_range = 0.1
-
-    # chop out a random portion within the range
+    # # chop out a random portion within the range
     # rand_start = random.randint(int(112* chop_range), int(244* chop_range))
     # while rand_start == 0:  # make sure not 0
     #   rand_start = random.randint(0, 224 * chop_range)
 
     time_chopped_spec = np.copy(spec)
-    time_chopped_spec[:, input_h - rand_start :, :] = 0
+    time_chopped_spec[:, input_w - rand_start :, :] = 0
     # print("time", time_chopped_spec.shape)
 
     return [time_chopped_spec]
 
 
-# freq chop
 def freq_chop(spec, rand_start, input_w=224, input_h=224):
-    # frequency chop
+    """
+    Chop spectrogram based on frequency (y axis) from the bottom.
+    
+    Inputs:
+    - spec: the spectrogram to chop
+    - rand_start: the index to start chopping
+    - input_w: the width of the spectrogram
+    - input_h: the height of the spectrogram
+    Returns:
+    - the chopped spectrogram.
+    """
+    # If not use the input rand_start but define a random start in function,
+    # uncomment the following lines.
     # chop_range = 0.1
-
-    # chop out a random portion within the range
+    # # chop out a random portion within the range
     # rand_start = random.randint(int(112* chop_range), int(244* chop_range))
     # while rand_start == 0:  # make sure not 0
     #   rand_start = random.randint(0, 224 * chop_range)
@@ -58,15 +86,26 @@ def freq_chop(spec, rand_start, input_w=224, input_h=224):
     return [freq_chopped_spec]
 
 
-# four side chop
 def four_chop(spec, rand_start, input_w=224, input_h=224):
-    # chopping from all four sides
+    """
+    Chop spectrogram from all four side of the image.
+    
+    Inputs:
+    - spec: the spectrogram to chop
+    - rand_start: the index to start chopping
+    - input_w: the width of the spectrogram
+    - input_h: the height of the spectrogram
+    Returns:
+    - the chopped spectrogram.
+    """
+    # If not use the input rand_start but define a random start in function,
+    # uncomment the following lines.
     # chop_range = 0.1
-
-    # chop out a random portion within the range
-    # rand_start = random.randint(int(122* chop_range), int(244* chop_range))
+    # # chop out a random portion within the range
+    # rand_start = random.randint(int(112* chop_range), int(244* chop_range))
     # while rand_start == 0:  # make sure not 0
-    #   rand_start = random.randint(0, 244 * chop_range)
+    #   rand_start = random.randint(0, 224 * chop_range)
+    
     four_chopped_spec = np.copy(spec)
     four_chopped_spec[0:rand_start, :, :] = 0  # top
     four_chopped_spec[:, input_h - rand_start :, :] = 0  # right
@@ -77,14 +116,24 @@ def four_chop(spec, rand_start, input_w=224, input_h=224):
     return [four_chopped_spec]
 
 
-# transalate up and down, return two spec
-# frequency ranges too large[1333.532 2565.584] [3084.02  3890.613]
 def translate(spec, roll_start, input_w=224, input_h=224):
+    """
+    Transalate the spectrogram up and down, return two spectrograms
+    
+    Inputs:
+    - spec: the spectrogram to chop
+    - roll_start: the index to start rolling
+    - input_w: the width of the spectrogram
+    - input_h: the height of the spectrogram
+    Returns:
+    - the translated spectrograms.
+    """
     return_specs = []
-    # use 10% as range
+    
+    # If not use the input roll_start but define a random start in function,
+    # uncomment the following lines.
     # translate_range = 0.1
-
-    # random portion within the range
+    # # random portion within the range
     # roll_start = random.randint(1, int(244* translate_range))
     # while roll_start == 0:  # make sure not 0
     #   rand_start = random.randint(0, 224 * translate_range)
@@ -97,11 +146,22 @@ def translate(spec, roll_start, input_w=224, input_h=224):
 
 # widen and squeezing
 def widen(spec, widen_index, input_w=224, input_h=224):
+    """
+    Widen the spectrogram on time and frequency seperately.
+    
+    Inputs:
+    - spec: the spectrogram to chop
+    - widen_index: the index to start rolling
+    - input_w: the width of the spectrogram
+    - input_h: the height of the spectrogram
+    Returns:
+    - the 2 widen spectrogram, one on time and the other on frequency.
+    """
     return_specs = []
-    # use 10% as range
+    # If not use the input widen_index but define a random start in function,
+    # uncomment the following lines.
     # widen_range = 0.1
-
-    # random portion within the range
+    # # random portion within the range
     # widen_index = random.randint(int(244* widen_range)/2, int(244* widen_range))
 
     widen_time_spec = cv2.resize(
@@ -125,10 +185,21 @@ def widen(spec, widen_index, input_w=224, input_h=224):
 
 
 def squeeze(spec, squeeze_index, input_w=224, input_h=224):
-    # use 10% as range
+    """
+    Squeeze the spectrogram on time and frequency.
+    
+    Inputs:
+    - spec: the spectrogram to chop
+    - squeeze_index: the index to start rolling
+    - input_w: the width of the spectrogram
+    - input_h: the height of the spectrogram
+    Returns:
+    - the squeezed spectrogram.
+    """
+    # If not use the input squeeze_index but define a random start in function,
+    # uncomment the following lines.
     # squeeze_range = 0.1
-
-    # random portion within the range
+    # # random portion within the range
     # squeeze_index = random.randint(int(244* squeeze_range)/2, int(244* squeeze_range))
 
     squeezed = cv2.resize(
@@ -146,18 +217,17 @@ def squeeze(spec, squeeze_index, input_w=224, input_h=224):
     return [squeeze_spec]
 
 
-# add noises methods, return a list of spec
-def add_noises(spec, cur_label, labels_h5, typeUsed, specs_h5):
-    # add noise from light rian -2, rain -3, heavy rain -4, thunder -5, aircraft -6, chainsaw -7, and car/truck -8
+def add_noises(spec, cur_label, labels_h5, typeUsed, specs_h5, noise_labels):
+    """
+    Add noises to the spectrogram, return a list of spec, one for each type of noise.
+    """
     return_specs = []
     # noise from all other labels
     allTypes = np.unique(labels_h5)
-    noise_labels = [x for x in allTypes if x != typeUsed[cur_label]]
 
     for i in range(len(noise_labels)):
         noises_index = np.argwhere(labels_h5 == noise_labels[i]).flatten()
-
-        noises = specs_h5[noises_index]
+        # noises = specs_h5[noises_index]
         index = random.randint(0, len(noises_index) - 1)
         noise = normalize(np.array(specs_h5[noises_index[index]]) / 3)
 
@@ -176,6 +246,9 @@ def augment(
     input_w=224,
     input_h=224,
 ):
+    """
+    Augment the spectrogram with all augmentation methods.
+    """
     # augment_range = 0.1
     augment_specs_func = []
     augment_label_func = []
@@ -240,9 +313,9 @@ def augment(
                 axis=0,
             )
 
-            # # noise
+            # noise, not used as we have a separated noise class.
             noise_aug_num = 0
-            # noise_spec, noise_aug_num= add_noises(np.copy(cur_spec), labels[i], typeUsed, specs_h5)
+            # noise_spec, noise_aug_num= add_noises(np.copy(cur_spec), labels[i], typeUsed, specs_h5, ['noise-or-background'])
             # augment_specs_func = np.append(augment_specs_func, noise_spec, axis = 0)
 
             # translate
@@ -264,6 +337,9 @@ def augment(
 
 
 def gen(specs, labels, typeUsed, step_len=4, shape_x=224, shape_y=224):
+    """
+    The generator function to yield the augmented spectrograms during training.
+    """
     while 1:
         # shuffle data
         indices = np.arange(len(labels))
@@ -301,6 +377,11 @@ def upsample(
     input_h=224,
     augment_range=0.1,
 ):
+    """
+    Upsample with data augmentation functions by randomly choose samples and 
+    augmentation methods to augment the spectrograms. Returns the augmented 
+    spectrogram array.
+    """
     num_to_upsample = target_num - len(specs)
     if num_to_upsample <= 0:
         return specs
@@ -312,7 +393,7 @@ def upsample(
     selected_aug_samples = specs[sample_indices]
     # if sample_sources is not None:
     #     selected_aug_sources = sample_sources[sample_indices]
-    # Augmenataion index.
+    # Augmenataion random index.
     indices = np.arange(
         int(input_w * augment_range / 3 * 2), int(input_h * augment_range)
     )
@@ -336,6 +417,9 @@ def upsample(
 
 # For classification pipeline, prediction from mp3 files.
 def mp32wav(mp3_file, wav_name):
+    """
+    Convert mp3 file to wav file.
+    """
     # print("-Converting:", mp3_file)
     try:
         audio = AudioSegment.from_file(mp3_file)
@@ -359,6 +443,9 @@ def mp32wav(mp3_file, wav_name):
 def retrieve_spec_from_mp3(
     mp3_file, temp_folder, max_freq, sec_used, log_scale=False
 ):
+    """
+    Retrieve spectrograms of 1s intervals from the mp3 file. 
+    """
     wav_name = temp_folder + mp3_file.split("/")[-1] + ".wav"
     success = mp32wav(mp3_file, wav_name)
     if not success:
@@ -397,6 +484,9 @@ def predict_mp3(
     cur_intervals=None,
     repeat=True,
 ):
+    """
+    Predict the spetrograms in the mp3 file.
+    """
     if spec_to_predict is None:
         spec_to_predict, cur_intervals = retrieve_spec_from_mp3(
             mp3_file, temp_folder, max_freq, sec_used
